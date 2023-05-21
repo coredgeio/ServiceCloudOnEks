@@ -1,0 +1,48 @@
+# Default values for service-cloud.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Common Labels
+labels:
+  app: "jenkins-deploy"
+
+# Container Configs
+image:
+  repository: "chub.cloud.gov.in/service-cloud-dev/jenkins_cloud"
+  pullPolicy: IfNotPresent
+  tag: "14112022"
+replicas: "1"
+httpPort: 8080
+#resources: |
+#  requests:
+#    cpu: 100m
+#    memory: 256Mi
+tracing-enabled: false
+
+   
+initContainers: |
+  - name: init-jenkins-data
+    image: chub.cloud.gov.in/service-cloud-dev/jenkins-init:v1
+    command:
+      - sh
+      - '-c'
+      - cp -r /jenkins/* /var/lib/jenkins
+    volumeMounts:
+      - name: jenkins-pv
+        mountPath: /var/lib/jenkins
+
+
+volumes: |
+  - name: jenkins-pv
+    persistentVolumeClaim:
+      claimName: task-pv-claim      
+
+volumeMounts: |
+  - name: jenkins-pv
+    mountPath: "/var/lib/jenkins"    
+
+ingress:
+  enabled: true
+  hostName: jenkins-sc-test.cloud.gov.in
+  context: 
+

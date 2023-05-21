@@ -1,0 +1,11 @@
+apiVersion: v2
+name: frontend-chart
+version: 0.1.0
+description: A Helm chart for deploying frontend charts
+dependencies:
+  - name: frontend
+    version: "*"
+    repository: file://charts/frontend   
+  - name: react-frontend
+    version: "*"
+    repository: file://charts/react-frontend

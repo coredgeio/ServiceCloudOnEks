@@ -1,0 +1,84 @@
+# Default values for service-cloud.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+# Common Labels
+labels:
+  app: "api"
+
+# Container Configs
+image:
+  repository: "chub.cloud.gov.in/service-cloud-dev/middleware"
+  pullPolicy: IfNotPresent
+  tag: "v100420231910"
+replicas: "1"
+httpPort: 5000
+#resources: |
+#  requests:
+#    cpu: 100m
+#    memory: 256Mi
+tracing-enabled: false
+
+env: |
+  - name: SMTP_SERVICE_URL
+    value: "servicecloud-smtp"
+  - name: SMTP_SERVICE_PORT
+    value: "25"
+  - name: FROM_NAME
+    value: "NIC Cloud Services"
+  - name: FROM_EMAIL
+    value: "noreply@cloud.gov.in"
+  - name: FLASK_CONFIG
+    value: "production"
+  - name: DB_PORT
+    value: "5432"
+  - name: DB_HOST
+    value: "postgres-h"
+  - name: CONSOLE_PROXY
+    value: "https://serviceconsole-prod.cloud.gov.in"
+  - name: POSTGRES_DB
+    value: middleware_production_db
+  - name: POSTGRES_PASSWORD
+    value: Middleware@01012019
+  - name: POSTGRES_USER
+    value: middleware_user
+  - name: NO_PROXY
+    value: auth-prod.cloud.gov.in
+  - name: OIDC_CLIENT_ID
+    value: apis
+  - name: OIDC_CLIENT_SECRET
+    value: envHo5IU3YirccTbkbNkR8WYrLqycqpK
+  - name: OIDC_DISCOVERY_URI
+    value: >-
+      https://auth-prod.cloud.gov.in/auth/realms/cloud/.well-known/openid-configuration
+  - name: OIDC_OPENID_REALM
+    value: cloud
+  - name: OIDC_ENABLED
+    value: 'true'
+  - name: VAULT_ADDR
+    value: 
+  - name: VAULT_ENABLED
+    value: 'true'
+  - name: VAULT_KV_PATH
+    value: v1/kv
+  - name: VAULT_TOKEN
+    value: 
+  - name: VERIFY_VAULT_SSL
+    value: 'false'    
+
+volumes: |
+  - name: swagger-ui
+    configMap: 
+      name: swagger-ui
+
+volumeMounts: |
+  - name: swagger-ui
+    mountPath: /opt/www/app/templates 
+
+hostAliases:
+    - ip: "10.194.98.216"
+      hostnames:
+      - "auth-prod.cloud.gov.in"
+    - ip: 10.247.252.97
+      hostnames:
+        - cloud.gov.in
+

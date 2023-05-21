@@ -1,0 +1,12 @@
+dependencies:
+- name: postgres-osaas
+  repository: file://../backbone-services/postgres-osaas
+  version: 0.1.0
+- name: osaas-api
+  repository: file://../backbone-services/osaas-api
+  version: 0.1.0
+- name: osaas-celery
+  repository: file://../backbone-services/osaas-celery
+  version: 0.1.0
+digest: sha256:f364da0422d42df7f951835064b8811954176a1aa065f9a6b57f98e4f2ee6f67
+generated: "2023-04-21T00:39:59.323169+05:30"

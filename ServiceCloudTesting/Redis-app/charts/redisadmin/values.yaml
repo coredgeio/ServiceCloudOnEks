@@ -1,0 +1,25 @@
+# Default values for egov-finance.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Common Labels
+labels:
+  app: "redisadmin"
+
+# Container Configs
+image:
+  repository: "chub.cloud.gov.in/service-cloud/php-redis-admin"
+  pullPolicy: IfNotPresent
+  tag: "latest"
+replicas: "1"
+httpPort: 80
+
+env: |
+  - name: PHPREDMIN_DATABASE_REDIS_0_HOST
+    value: redis    
+
+ingress:
+  enabled: true
+  hostName: redisadmin-prod.cloud.gov.in
+  context: 
+

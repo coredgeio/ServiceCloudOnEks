@@ -1,0 +1,101 @@
+frontend:
+  labels:
+    app: "frontend"
+
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/frontend"
+    pullPolicy: IfNotPresent
+    tag: "v030220231235"
+  replicas: "1"
+  httpPort: 80
+
+  tracing-enabled: false
+
+  env: |
+    - name: VUE_APP_SOCKET_IO
+      value: "https://socketio-prod.cloud.gov.in"
+    - name: VUE_APP_API_URL
+      value: "https://serviceapi-prod.cloud.gov.in"
+    - name: VUE_APP_OIDC_AUTH_URL
+      value: https://auth-prod.cloud.gov.in/auth
+    - name: VUE_APP_OIDC_REALM
+      value: cloud
+    - name: VUE_APP_OIDC_ENABLED
+      value: "true"
+    - name: VUE_APP_OIDC_CLIENT_ID
+      value: frontend
+
+  volumes: |
+    - name: frontendnginx
+      configMap:
+        name: frontendnginx
+
+  volumeMounts: |
+    - name: frontendnginx
+      mountPath: /etc/nginx/conf.d
+
+  ingress:
+    enabled: true
+    hostName: service-prod.cloud.gov.in
+
+react-frontend:
+  labels:
+    app: "react-frontend"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/react_frontend"
+    pullPolicy: IfNotPresent
+    tag: "v10042023161358"
+  replicas: "1"
+  httpPort: 80
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  tracing-enabled: false
+
+  env: |
+    - name: APP_SOCKET_IO
+      value: https://socketio-prod.cloud.gov.in
+    - name: APP_API_URL
+      value: https://serviceapi-prod.cloud.gov.in
+    - name: APP_OIDC_AUTH_URL
+      value: https://auth-prod.cloud.gov.in/auth
+    - name: APP_OIDC_REALM
+      value: cloud
+    - name: APP_OIDC_ENABLED
+      value: 'true'
+    - name: APP_OIDC_CLIENT_ID
+      value: frontend
+    - name: REACT_APP_LINK_GITLAB
+      value: https://tracker.cloud.gov.in/
+    - name: REACT_APP_LINK_DOCS
+      value: https://chub.cloud.gov.in/
+    - name: REACT_APP_K8S_DASHBOARD_ENABLED
+      value: 'true'
+    - name: REACT_APP_OIDC_ENABLED
+      value: 'false'
+    - name: REACT_APP_OLD_PORTAL_LINK
+      value: http:\/\/service-prod.cloud.gov.in\/
+    - name: REACT_APP_ROUTER_BASE_NAME
+      value: \/ui\/v2
+    - name: REACT_APP_ROUTE_PROXY
+      value: 'false'    
+    - name: REACT_APP_IS_NKS_ENABLED
+      value: 'true'    
+
+
+  volumes: |
+    - name: frontendnginxreact
+      configMap:
+        name: frontendnginxreact
+
+  volumeMounts: |
+    - name: frontendnginxreact
+      mountPath: /etc/nginx/conf.d
+
+  ingress:
+    enabled: true
+    hostName: service-prod.cloud.gov.in
+    context: 

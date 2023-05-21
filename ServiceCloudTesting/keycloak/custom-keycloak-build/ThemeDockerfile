@@ -1,0 +1,8 @@
+FROM chub.cloud.gov.in/library/keycloak:17.0.1-legacy
+USER jboss
+
+COPY nic /opt/jboss/keycloak/themes/nic
+
+COPY in.gov.nic-sso-2fa-authenticator-1.44.jar /opt/jboss/keycloak/standalone/deployments/
+COPY in.gov.nic-sso-extensions-0.2.jar /opt/jboss/keycloak/standalone/deployments/
+COPY keycloak-configurable-token-1.8.0.jar /opt/jboss/keycloak/standalone/deployments/

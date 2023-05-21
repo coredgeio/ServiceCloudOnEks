@@ -1,0 +1,32 @@
+# Default values for service-cloud.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+# Common Labels
+labels:
+  app: "smtp"
+
+# Container Configs
+image:
+  repository: "chub.cloud.gov.in/library/smtp"
+  pullPolicy: IfNotPresent
+  tag: "latest"
+replicas: "1"
+httpPort: 42
+
+tracing-enabled: false
+
+
+env: |
+  - name: MAILNAME
+    value: cloud.gov.in
+  - name: RELAY_NETWORKS
+    value: ':10.42.0.0/16'
+  - name: SMARTHOST_ADDRESS
+    value: relay.nic.in
+  - name: SMARTHOST_PASSWORD
+    value: 
+  - name: SMARTHOST_PORT
+    value: '25'
+  - name: SMARTHOST_USER
+    value:  
+ 

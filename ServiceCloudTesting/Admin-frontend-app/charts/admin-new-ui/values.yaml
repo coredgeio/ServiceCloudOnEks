@@ -1,0 +1,52 @@
+# Default values for service-cloud.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Common Labels
+labels:
+  app: "admin-new-ui"
+
+# Container Configs
+image:
+  repository: "chub.cloud.gov.in/service-cloud-dev/admin_react_frontend"
+  pullPolicy: IfNotPresent
+  tag: "v18042023140831"
+replicas: "1"
+httpPort: 80
+#resources: |
+#  requests:
+#    cpu: 100m
+#    memory: 256Mi
+tracing-enabled: false
+
+env: |
+  - name: REACT_APP_API_URL
+    value: https://serviceapi-prod.cloud.gov.in
+  - name: REACT_APP_SOCKET_IO
+    value: https://socketio-prod.cloud.gov.in 
+  - name: REACT_APP_OIDC_AUTH_URL
+    value:
+  - name: REACT_APP_OIDC_REALM
+    value: cloud
+  - name: REACT_APP_OIDC_CLIENT_ID
+    value: frontend
+  - name: REACT_APP_OIDC_ENABLED
+    value: 'false'
+  - name: REACT_APP_HELP_LINK
+    value: ''
+
+
+volumes: |
+  - name: admin-nginxreact
+    configMap:
+      name: admin-nginxreact
+
+volumeMounts: |
+  - name: admin-nginxreact
+    mountPath: /etc/nginx/conf.d
+
+ingress:
+  enabled: true
+  hostName: serviceadmin-prod.cloud.gov.in
+  context: 
+

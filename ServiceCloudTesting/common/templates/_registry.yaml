@@ -1,0 +1,11 @@
+{{- define "common.registry" -}}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: chub
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ template "imagePullSecret" . }}
+{{- end -}}
+

@@ -1,0 +1,17 @@
+{{- define "common.service" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "common.name" . }}
+  annotations: 
+  labels:
+{{- include "common.labels" . | nindent 4 }}   
+spec:
+  selector: 
+{{- include "common.labels" . | nindent 4 }}    
+  ports:
+  - name: http
+    port: {{ .Values.httpPort }}
+    targetPort: {{ .Values.httpPort }}  
+{{- end -}}

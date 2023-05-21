@@ -1,0 +1,704 @@
+postgres:
+  labels:
+    app: "postgres"
+    group: "db"
+
+  image:
+    repository: "chub.cloud.gov.in/service-cloud/postgres"
+    tag: "middle_19-04-23"
+  replicas: "1"
+  httpPort: 5432
+
+  svc_name: "postgres-h"
+
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+
+  tracing-enabled: false
+  pvSize: 50Gi
+
+  POSTGRES_USER: middleware_user
+  POSTGRES_PASSWORD: Middleware@01012019
+  POSTGRES_DB: middleware_production_db
+
+  env: |
+    - name: POSTGRES_USER
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_USER
+    - name:  POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_PASSWORD
+    - name: POSTGRES_DB
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_DB 
+
+  volumeMounts: |
+    - mountPath: /niccloud/postgresql
+      name: middleware-data
+
+  volumes: |
+    - name: middleware-data
+      persistentVolumeClaim:
+        claimName: middleware-data
+
+  securityContext: |
+    fsGroup: 1001   
+
+
+admin:
+  labels:
+    app: "admin"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/admin"
+    pullPolicy: IfNotPresent
+    tag: "v16032023162216"
+  replicas: "1"
+  httpPort: 80
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  tracing-enabled: false
+  env: |
+    - name: VUE_APP_SOCKET_IO
+      value: https:\/\/servicesocketio-cd.labcloud.nic.in
+    - name: VUE_APP_API_URL
+      value: https:\/\/serviceapi-cd.labcloud.nic.in
+    - name: VUE_APP_OIDC_AUTH_URL
+      value: https:\/\/auth-cd.labcloud.nic.in\/auth
+    - name: VUE_APP_OIDC_REALM
+      value: cloud
+    - name: VUE_APP_OIDC_ENABLED
+      value: "true"
+    - name: VUE_APP_OIDC_CLIENT_ID
+      value: admin-frontend   
+
+
+  volumes: |
+    - name: frontendnginx
+      configMap:
+        name: frontendnginx
+  volumeMounts: |
+    - name: frontendnginx
+      mountPath: /etc/nginx/conf.d
+
+  ingress:
+    enabled: true
+    hostName: admin-cd.labcloud.nic.in
+    context: 
+
+
+admin-api:
+  labels:
+    app: "admin-api"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/admin-middleware"
+    pullPolicy: IfNotPresent
+    tag: "v010520231352"
+  replicas: "1"
+  httpPort: 5000
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  tracing-enabled: false
+
+  env: |
+    - name: CONSOLE_PROXY
+      value: "https://serviceconsole-cd.labcloud.nic.in"
+    - name: SMTP_SERVICE_URL
+      value: "servicecloud-smtp"
+    - name: SMTP_SERVICE_PORT
+      value: "25"
+    - name: FROM_NAME
+      value: "NIC Cloud Services"
+    - name: FROM_EMAIL
+      value: "noreply@cloud.gov.in"
+    - name: FLASK_CONFIG
+      value: "development"
+    - name: DB_HOST
+      value: "postgres-h"
+    - name: DB_PORT
+      value: "5432"
+    - name: POSTGRES_USER
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_USER
+    - name: POSTGRES_DB
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_DB
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_PASSWORD
+    - name: SMS_SERVICE_USERID
+      valueFrom:
+        secretKeyRef:
+          name: sms
+          key: SMS_SERVICE_USERID
+    - name: SMS_SERVICE_USERPIN
+      valueFrom:
+        secretKeyRef:
+          name: sms
+          key: SMS_SERVICE_USERPIN
+    - name: NO_PROXY
+      value: auth-cd.labcloud.nic.in
+    - name: OIDC_BASE_URL
+      value: https://auth-cd.labcloud.nic.in
+    - name: OIDC_CLIENT_ID
+      value: adminapis
+    - name: OIDC_CLIENT_SECRET
+      value: yCy4cGO73chatO2gtsZ9bMdXd7U0kVXB
+    - name: OIDC_RESOURCE_CHECK_AUD
+      value: "true"
+    - name: OIDC_DISCOVERY_URI
+      value: /auth/realms/cloud/.well-known/openid-configuration
+    - name: OIDC_ENABLED
+      value: "true"
+    - name: MIGRATE_USERS_TO_SSO
+      value: "true"
+    - name: OIDC_OPENID_REALM
+      value: cloud
+    - name: NKS_BASE_URL
+      value: https://nks-api:5000/nksapi/v1
+    - name: OTP_EXPIRY_TIME
+      value: '120'
+    - name: OTP_INTEGRATION
+      value: 'true'
+    - name: SEND_NKS_ONBOARDING_UPDATE_STATUS
+      value: 'true'
+    - name: TOKEN_EXPIRY_TIME
+      value: '1200'
+    - name: VAULT_ADDR
+      value: https://vault-cd.labcloud.nic.in
+    - name: VAULT_ENABLED
+      value: 'true'
+    - name: VAULT_KV_PATH
+      value: v1/kv
+    - name: VAULT_TOKEN
+      value: 
+    - name: VERIFY_VAULT_SSL
+      value: 'false'         
+
+  envFrom: |
+    - secretRef:
+        name: postgres
+        optional: false
+    - secretRef:
+        name: sms
+        optional: false
+  
+  volumes: |
+    - name: admin-swagger-ui
+      configMap: 
+        name: admin-swagger-ui
+
+  volumeMounts: |
+    - name: admin-swagger-ui
+      mountPath: /opt/www/app/templates 
+
+
+  hostAliases:
+      - ip: "10.246.180.85"
+        hostnames:
+        - "auth-cd.labcloud.nic.in" 
+      - ip: "10.246.180.85"
+        hostnames:
+          - vault-cd.labcloud.nic.in       
+
+
+admin-celery:
+  labels:
+    app: "admin-celery"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/admin-middleware"
+    pullPolicy: IfNotPresent
+    tag: "v120420231852"
+  replicas: "1"
+  httpPort: 5000
+  resources: |
+    limits:
+      cpu: '1'
+      memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  tracing-enabled: false
+
+  command:
+    - /bin/sh
+    - '-cx'
+    - >-
+      /usr/bin/celery -A app.celery worker --loglevel=INFO -B >>
+      /opt/www/celery.log 2>&1   
+
+  env: |
+    - name: CONSOLE_PROXY
+      value: "https://serviceconsole-cd.labcloud.nic.in"
+    - name: SMTP_SERVICE_URL
+      value: "servicecloud-smtp"
+    - name: SMTP_SERVICE_PORT
+      value: "25"
+    - name: FROM_NAME
+      value: "NIC Cloud Services"
+    - name: FROM_EMAIL
+      value: "noreply@cloud.gov.in"
+    - name: FLASK_CONFIG
+      value: "development"
+    - name: DB_HOST
+      value: "postgres-h"
+    - name: DB_PORT
+      value: "5432"
+    - name: POSTGRES_USER
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_USER
+    - name: POSTGRES_DB
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_DB
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: postgres
+          key: POSTGRES_PASSWORD
+    - name: SMS_SERVICE_USERID
+      valueFrom:
+        secretKeyRef:
+          name: sms
+          key: SMS_SERVICE_USERID
+    - name: SMS_SERVICE_USERPIN
+      valueFrom:
+        secretKeyRef:
+          name: sms
+          key: SMS_SERVICE_USERPIN
+    - name: NO_PROXY
+      value: auth-cd.labcloud.nic.in
+    - name: OIDC_BASE_URL
+      value: https://auth-cd.labcloud.nic.in
+    - name: OIDC_CLIENT_ID
+      value: adminapis
+    - name: OIDC_CLIENT_SECRET
+      value: yCy4cGO73chatO2gtsZ9bMdXd7U0kVXB
+    - name: OIDC_RESOURCE_CHECK_AUD
+      value: "true"
+    - name: OIDC_DISCOVERY_URI
+      value: /auth/realms/cloud/.well-known/openid-configuration
+    - name: OIDC_ENABLED
+      value: "true"
+    - name: MIGRATE_USERS_TO_SSO
+      value: "true"
+    - name: OIDC_OPENID_REALM
+      value: cloud
+    - name: NKS_BASE_URL
+      value: https://nks-api:5000/nksapi/v1
+    - name: OTP_EXPIRY_TIME
+      value: '120'
+    - name: OTP_INTEGRATION
+      value: 'true'
+    - name: SEND_NKS_ONBOARDING_UPDATE_STATUS
+      value: 'true'
+    - name: TOKEN_EXPIRY_TIME
+      value: '1200'
+    - name: VAULT_ADDR
+      value: https://vault-cd.labcloud.nic.in
+    - name: VAULT_ENABLED
+      value: 'true'
+    - name: VAULT_KV_PATH
+      value: v1/kv
+    - name: VAULT_TOKEN
+      value: 
+    - name: VERIFY_VAULT_SSL
+      value: 'false'   
+
+  envFrom: |
+    - secretRef:
+        name: postgres
+        optional: false
+    - secretRef:
+        name: sms
+        optional: false
+        
+  hostAliases:
+      - ip: "10.246.180.85"
+        hostnames:
+        - "auth-cd.labcloud.nic.in" 
+
+      - ip: "10.246.180.85"
+        hostnames:
+          - vault-cd.labcloud.nic.in            
+
+
+api:
+  labels:
+    app: "api"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/middleware"
+    pullPolicy: IfNotPresent
+    tag: "v01052023200740"
+  replicas: "1"
+  httpPort: 5000
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  tracing-enabled: false
+
+  env: |
+    - name: SMTP_SERVICE_URL
+      value: "servicecloud-smtp"
+    - name: SMTP_SERVICE_PORT
+      value: "25"
+    - name: FROM_NAME
+      value: "NIC Cloud Services"
+    - name: FROM_EMAIL
+      value: "noreply@cloud.gov.in"
+    - name: FLASK_CONFIG
+      value: "development"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_HOST
+      value: "postgres-h"
+    - name: CONSOLE_PROXY
+      value: "https://serviceconsole-cd.labcloud.nic.in"
+    - name: POSTGRES_DB
+      value: middleware_production_db
+    - name: POSTGRES_PASSWORD
+      value: Middleware@01012019
+    - name: POSTGRES_USER
+      value: middleware_user
+    - name: NO_PROXY
+      value: auth-cd.labcloud.nic.in
+    - name: OIDC_CLIENT_ID
+      value: apis
+    - name: OIDC_CLIENT_SECRET
+      value: envHo5IU3YirccTbkbNkR8WYrLqycqpK
+    - name: OIDC_DISCOVERY_URI
+      value: >-
+        https://auth-cd.labcloud.nic.in/auth/realms/cloud/.well-known/openid-configuration
+    - name: OIDC_OPENID_REALM
+      value: cloud
+    - name: OIDC_ENABLED
+      value: 'true'
+    - name: VAULT_ADDR
+      value: 
+    - name: VAULT_ENABLED
+      value: 'true'
+    - name: VAULT_KV_PATH
+      value: v1/kv
+    - name: VAULT_TOKEN
+      value: 
+    - name: VERIFY_VAULT_SSL
+      value: 'false'    
+    - name: AUTO_VERIFY_BACKUP
+      value: 'false'
+    - name: OTP_EXPIRY_TIME
+      value: '120'
+    - name: OTP_INTEGRATION
+      value: 'true'
+    - name: TOKEN_EXPIRY_TIME
+      value: '1200'              
+
+  volumes: |
+    - name: swagger-ui
+      configMap: 
+        name: swagger-ui
+
+  volumeMounts: |
+    - name: swagger-ui
+      mountPath: /opt/www/app/templates 
+
+
+  hostAliases:
+      - ip: "10.246.180.85"
+        hostnames:
+        - "auth-cd.labcloud.nic.in"
+      - ip: 10.247.252.97
+        hostnames:
+          - cloud.gov.in
+      - ip: "10.246.180.85"
+        hostnames:
+          - vault-cd.labcloud.nic.in             
+
+celery:
+  labels:
+    app: "celery"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/middleware"
+    pullPolicy: IfNotPresent
+    tag: "v100420231910"
+  replicas: "1"
+  httpPort: 5000
+  resources: |
+    limits:
+      cpu: '1'
+      memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi  
+  tracing-enabled: false
+
+  command:
+    - /bin/sh
+    - '-cx'
+    - >-
+      /usr/bin/celery -A app.celery worker --loglevel=INFO >>
+      /opt/www/celery.log 2>&1    
+
+  env: |
+    - name: SMTP_SERVICE_URL
+      value: "servicecloud-smtp"
+    - name: SMTP_SERVICE_PORT
+      value: "25"
+    - name: FROM_NAME
+      value: "NIC Cloud Services"
+    - name: FROM_EMAIL
+      value: "noreply@cloud.gov.in"
+    - name: FLASK_CONFIG
+      value: "development"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_HOST
+      value: "postgres-h"
+    - name: CONSOLE_PROXY
+      value: "https://serviceconsole-cd.labcloud.nic.in"
+    - name: POSTGRES_DB
+      value: middleware_production_db
+    - name: POSTGRES_PASSWORD
+      value: Middleware@01012019
+    - name: POSTGRES_USER
+      value: middleware_user
+    - name: NO_PROXY
+      value: auth-cd.labcloud.nic.in
+    - name: OIDC_CLIENT_ID
+      value: apis
+    - name: OIDC_CLIENT_SECRET
+      value: envHo5IU3YirccTbkbNkR8WYrLqycqpK
+    - name: OIDC_DISCOVERY_URI
+      value: >-
+        https://auth-cd.labcloud.nic.in/auth/realms/cloud/.well-known/openid-configuration
+    - name: OIDC_OPENID_REALM
+      value: cloud
+    - name: OIDC_ENABLED
+      value: 'true'
+    - name: VAULT_ADDR
+      value: 
+    - name: VAULT_ENABLED
+      value: 'true'
+    - name: VAULT_KV_PATH
+      value: v1/kv
+    - name: VAULT_TOKEN
+      value: 
+    - name: VERIFY_VAULT_SSL
+      value: 'false'    
+    - name: AUTO_VERIFY_BACKUP
+      value: 'false'
+    - name: OTP_EXPIRY_TIME
+      value: '120'
+    - name: OTP_INTEGRATION
+      value: 'true'
+    - name: TOKEN_EXPIRY_TIME
+      value: '1200'  
+
+  envFrom: |
+    - secretRef:
+        name: postgres
+        optional: false
+    - secretRef:
+        name: sms
+        optional: false
+        
+
+
+apirevproxy:
+  labels:
+    app: "apirevproxy"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud/apirevproxy"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  replicas: "1"
+  httpPort: 80
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  tracing-enabled: false
+
+  volumes: |
+    - name: apirevproxy
+      configMap: 
+        name: apirevproxy
+
+  volumeMounts: |
+    - name: apirevproxy
+      mountPath:  /etc/nginx/conf.d/
+
+  ingress:
+    enabled: true
+    hostName: serviceapi-cd.labcloud.nic.in
+    context: 
+
+console:
+  labels:
+    app: "console"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud/consoleproxy"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  replicas: "1"
+  httpPort: 80
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  tracing-enabled: false
+
+  volumes: |
+    - name: console-conf
+      configMap: 
+        name: console-conf
+
+  volumeMounts: |
+    - name: console-conf
+      mountPath:  /etc/nginx/conf.d/
+  
+  ingress:
+    enabled: true
+    hostName: serviceconsole-cd.labcloud.nic.in
+    context: 
+
+socketio:
+  labels:
+    app: "socketio"
+
+  # Container Configs
+  name: socketio
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/socketio_sso"
+    pullPolicy: Always
+    tag: "1.2"
+  replicas: "1"
+  httpPort: 5000
+  resources: {}
+  livenessProbe: |
+        failureThreshold: 3
+        httpGet:
+          path: /
+          port: 5000
+          scheme: HTTP
+        initialDelaySeconds: 20
+        periodSeconds: 30
+        successThreshold: 1
+        timeoutSeconds: 5
+
+  readinessProbe: |
+        failureThreshold: 3
+        httpGet:
+          path: /
+          port: 5000
+          scheme: HTTP
+        initialDelaySeconds: 20
+        periodSeconds: 30
+        successThreshold: 2
+        timeoutSeconds: 5
+
+  ingress:
+    enabled: true
+    hostName: servicesocketio-cd.labcloud.nic.in
+    context:
+
+  env: |
+    - name: ALLOWED_ORIGIN
+      value: >-
+        https://admin-cd.labcloud.nic.in
+        https://serviceadmin-cd.cloud.gov.in https://serviceapi-cd.labcloud.nic.in
+        https://serviceconsole-cd.labcloud.nic.in
+        https://auth.labcloud.nic.in https://service-cd.labcloud.nic.in      
+
+
+pgadmin:
+  labels:
+    app: "pgadmin"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud/adminer"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  replicas: "1"
+  httpPort: 8080
+
+  env: |
+    - name: PGADMIN_DEFAULT_EMAIL
+      value: api_user
+    - name: PGADMIN_DEFAULT_PASSWORD
+      value: ApiUser@01012019
+    - name: PGADMIN_LISTEN_ADDRESS
+      value: 127.0.0.1
+    - name: PGADMIN_LISTEN_PORT
+      value: "8080"    
+
+  ingress:
+    enabled: true
+    hostName: servicepgadmin-cd.labcloud.nic.in
+    context: 
+
+smtp:
+  labels:
+    app: "smtp"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/library/smtp"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  replicas: "1"
+  httpPort: 42
+
+  tracing-enabled: false
+
+
+  env: |
+    - name: MAILNAME
+      value: cloud.gov.in
+    - name: RELAY_NETWORKS
+      value: ':10.42.0.0/16'
+    - name: SMARTHOST_ADDRESS
+      value: relay.nic.in
+    - name: SMARTHOST_PASSWORD
+      value: 
+    - name: SMARTHOST_PORT
+      value: '25'
+    - name: SMARTHOST_USER
+      value:  
+  

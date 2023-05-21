@@ -1,0 +1,33 @@
+dependencies:
+- name: postgres
+  repository: file://charts/postgres
+  version: 0.1.0
+- name: admin-api
+  repository: file://charts/admin-api
+  version: 0.1.0
+- name: admin-celery
+  repository: file://charts/admin-celery
+  version: 0.1.0
+- name: api
+  repository: file://charts/api
+  version: 0.1.0
+- name: celery
+  repository: file://charts/celery
+  version: 0.1.0
+- name: apirevproxy
+  repository: file://charts/apirevproxy
+  version: 0.1.0
+- name: console
+  repository: file://charts/console
+  version: 0.1.0
+- name: socketio
+  repository: file://charts/socketio
+  version: 0.1.0
+- name: pgadmin
+  repository: file://charts/pgadmin
+  version: 0.1.0
+- name: smtp
+  repository: file://charts/smtp
+  version: 0.1.0
+digest: sha256:02e6cb2d47408b8cb935e4411538b02cf20cd81b62b2657fc470ef8dae0d7fe8
+generated: "2023-05-19T00:39:28.367043+05:30"

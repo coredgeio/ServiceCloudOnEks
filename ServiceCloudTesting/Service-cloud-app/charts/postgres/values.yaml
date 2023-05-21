@@ -1,0 +1,65 @@
+labels:
+  app: "postgres"
+  group: "db"
+
+image:
+  repository: "chub.cloud.gov.in/service-cloud/postgres"
+  tag: "middle"
+replicas: "1"
+httpPort: 5432
+
+svc_name: "postgres-h"
+
+#resources: |
+#  requests:
+#    cpu: 100m
+#    memory: 256Mi
+
+tracing-enabled: false
+pvSize: 50Gi
+
+POSTGRES_USER: middleware_user
+POSTGRES_PASSWORD: Middleware@01012019
+POSTGRES_DB: middleware_production_db
+
+env: |
+  - name: POSTGRES_USER
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: POSTGRES_USER
+  - name:  POSTGRES_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: POSTGRES_PASSWORD
+  - name: POSTGRES_DB
+    valueFrom:
+      secretKeyRef:
+        name: postgres
+        key: POSTGRES_DB 
+
+volumeMounts: |
+  - mountPath: /niccloud/postgresql
+    name: middleware-data
+
+volumes: |
+  - name: middleware-data
+    persistentVolumeClaim:
+      claimName: middleware-data
+
+securityContext: |
+  fsGroup: 1001      
+
+# initContainers:
+#   name: init-chmod-data
+#   postgresPermission:
+#     enabled: true
+#     image:
+#       repository: "chub.cloud.gov.in/service-cloud/bitnami/minideb"
+#       tag: "buster"
+
+#command:
+# enabled: true
+# permissionScript: [/bin/sh -cx 'mkdir -p /niccloud/postgresql/data ; chmod -Rf 777 /niccloud/postgresql/ ; chown -R 1001:100 /niccloud/postgresql/data']
+

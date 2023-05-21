@@ -1,0 +1,88 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: vault-snapshot-cronjob
+spec:
+  schedule: "@every 12h"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          volumes:
+          - name: share
+            emptyDir: {}
+          containers:
+          - name: snapshot
+            image: chub.cloud.gov.in/library/vault-backup:1.12.0
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            args:
+            - -ec
+            # The offical vault docker image actually doesn't come with `jq`. You can 
+            # - install it during runtime (not a good idea and your security team may not like it)
+            # - ship `jq` static binary in a standalone image and mount it using a shared volume from `initContainers`
+            # - build your custom `vault` image
+            - |
+              export VAULT_TOKEN=$(vault write auth/approle/login role_id=$VAULT_APPROLE_ROLE_ID secret_id=$VAULT_APPROLE_SECRET_ID -format=json | jq -r .auth.client_token);
+              vault operator raft snapshot save /share/vault-raft.snap; 
+            envFrom:
+            - secretRef:
+                name: vault-snapshot-agent-token
+            env:
+            - name: VAULT_ADDR
+              value: http://vault-dev-active.service-cloud-uat.svc.cluster.local:8200
+            volumeMounts:
+            - mountPath: /share
+              name: share
+          - name: upload
+            image: chub.cloud.gov.in/library/peak_s5cmd 
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            args:
+            - -ec
+            # the script wait untill the snapshot file is available
+            # then upload to s3
+            # for folks using non-aws S3 like IBM Cloud Object Storage service, add a `--endpoint-url` option
+            # run `aws --endpoint-url <https://your_s3_endpoint> s3 cp ...`
+            # change the s3://<path> to your desired location
+            - |
+              until [ -f /share/vault-raft.snap ]; do sleep 5; done;
+              # Set variables for current time and filename
+              current_time=$(date +%Y-%m-%d_%H-%M-%S)
+              filename=vault-raft.snap
+              
+              # Upload file to S3 bucket
+              /s5cmd  cp /share/${filename} s3://$S3_BUCKET/$S3_PREFIX/${current_time}_${filename}              
+              
+              # List all files in the bucket
+              file_list=$(/s5cmd ls s3://$S3_BUCKET/$S3_PREFIX/ | awk '{print $NF}')
+              
+              # Count the number of files in the bucket
+              file_count=$(echo "${file_list}" | wc -l)
+              
+              # If there are more than RETAIN_COUNT files, delete the oldest ones
+              if [ "${file_count}" -gt "$RETAIN_COUNT" ]; then
+                files_to_delete=$((file_count - $RETAIN_COUNT))
+                echo "Deleting ${files_to_delete} old files..."
+                echo "${file_list}" | head -n "${files_to_delete}" | while read -r file; do
+                  echo ${file}
+                  /s5cmd rm "s3://$S3_BUCKET/$S3_PREFIX/${file}"
+                done
+              fi
+
+            envFrom:
+            - secretRef:
+                name: vault-snapshot-s3
+            env:
+              - name: S3_PREFIX
+                value: servicecloud-vault-backup
+              - name: RETAIN_COUNT
+                value: '48'       
+              - name: S3_BUCKET
+                value: central-management-backup-bucket                         
+            volumeMounts:
+            - mountPath: /share
+              name: share
+          restartPolicy: OnFailure

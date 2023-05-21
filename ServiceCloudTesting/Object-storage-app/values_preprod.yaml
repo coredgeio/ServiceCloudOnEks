@@ -1,0 +1,164 @@
+postgres-osaas:
+  labels:
+    app: "postgres-osaas"
+    group: "db"
+
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/postgres-osaas"
+    tag: "v26072021"
+  replicas: "1"
+  httpPort: 5432
+
+  svc_name: "postgres-osaas"
+
+  pvSize: 50Gi
+
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+
+  tracing-enabled: false
+
+  env: |
+    - name: POSTGRESQL_VOLUME_DIR 	
+      value: "/niccloud/postgresql"
+    - name: POSTGRESQL_USERNAME 	
+      value: "api_user"
+    - name: POSTGRESQL_PORT_NUMBER 	
+      value: "5432"
+    - name: POSTGRESQL_PASSWORD 	
+      value: "password"
+    - name: POSTGRESQL_ENABLE_LDAP 	
+      value: "no"
+    - name: POSTGRESQL_DATABASE 	
+      value: "apidb"
+    - name: PGDATA 	
+      value: "/niccloud/postgresql/data"
+    - name: BITNAMI_DEBUG 	
+      value: "false"
+
+  volumeMounts: |
+    - mountPath: /niccloud/postgresql
+      name: osaas-data
+
+  volumes: |
+    - name: osaas-data
+      persistentVolumeClaim:
+        claimName: osaas-data
+
+  securityContext: |
+    fsGroup: 1001    
+
+osaas-api:
+  labels:
+    app: "osaas-api"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/object-storage-middleware"
+    pullPolicy: IfNotPresent
+    tag: "v130420231530"
+  replicas: "1"
+  httpPort: 5000
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  tracing-enabled: false
+
+  env: |
+    - name: FLASK_CONFIG
+      value: "production"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_HOST
+      value: "postgres-osaas"
+    - name: CONSOLE_PROXY
+      value: "https://serviceconsole.preprodcloud.nic.in"
+
+  volumes: |
+    - name: osaas-swagger-ui
+      configMap: 
+        name: osaas-swagger-ui
+
+  volumeMounts: |
+    - name: osaas-swagger-ui
+      mountPath: /opt/www/app/templates 
+
+
+  hostAliases:
+      - ip: 10.194.49.35
+        hostnames:
+          - staas-bbs1.cloud.gov.in
+      - ip: 10.194.49.235
+        hostnames:
+          - ceph-ndcbbsr-dashboard.cloud.gov.in    
+
+
+osaas-celery:
+  labels:
+    app: "osaas-celery"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/object-storage-middleware"
+    pullPolicy: IfNotPresent
+    tag: "v130420231530"
+  replicas: "1"
+  httpPort: 5000
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  tracing-enabled: false
+
+  env: |
+    - name: AUTO_VERIFY_BACKUP
+      value: 'false'
+    - name: CONSOLE_PROXY
+      value: "https://serviceconsole.preprodcloud.nic.in"
+    - name: DB_HOST
+      value: postgres-osaas
+    - name: DB_PORT
+      value: '5432'
+    - name: FLASK_CONFIG
+      value: development
+    - name: OTP_EXPIRY_TIME
+      value: '240'
+    - name: OTP_INTEGRATION
+      value: 'true'
+    - name: TOKEN_EXPIRY_TIME
+      value: '1800'
+
+  command:
+    - /bin/sh
+    - '-cx'
+    - >-
+      /usr/bin/celery -A app.celery worker --loglevel=INFO -B >>
+      /opt/www/celery.log 2>&1
+
+
+  volumes: |
+    - name: osaas-swagger-ui
+      configMap: 
+        name: osaas-swagger-ui
+
+  volumeMounts: |
+    - name: osaas-swagger-ui
+      mountPath: /opt/www/app/templates 
+
+
+  hostAliases:
+      - ip: 10.194.49.35
+        hostnames:
+          - staas-bbs1.cloud.gov.in
+      - ip: 10.194.49.235
+        hostnames:
+          - ceph-ndcbbsr-dashboard.cloud.gov.in
+      - ip: 10.246.104.182
+        hostnames:
+          - api.staasdl.nic.in
+      - ip: 10.194.48.56
+        hostnames:
+          - ndcapi01.mgmtbbsshcp01.bhubcloud1.nic.in        

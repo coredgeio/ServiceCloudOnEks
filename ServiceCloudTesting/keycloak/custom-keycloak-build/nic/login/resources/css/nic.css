@@ -1,0 +1,60 @@
+.login-container .login-content {
+  max-width: 340px;
+  margin: 0 auto;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.login-content{
+      /* filter: invert(1); */
+      background: #3d61d8;;
+      padding: 10px;
+}
+
+.login-container .login-content {
+  max-width: 340px;
+  margin: 0 auto;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.login-container .login-content .logo-grp {
+  margin: 10px 0;
+}
+
+.login-container .login-content .logo-grp a:first-child {
+  width: 165px;
+  height: auto;
+}
+.login-container .login-content img {
+  max-height: 65px;
+}
+
+.login-pf-page-header{
+  display: none;
+}
+
+#emblem{
+  max-height: 58px;
+}
+
+.logo-grp-img{
+  max-height: 45px;
+  display: inline-block;
+}
+
+.logo-grp{
+  margin: 10px;
+}
+
+.separator {
+  margin: 10px 0;
+  position: relative;
+}
+.user {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid #ffffff;
+  line-height: 45px;
+}
