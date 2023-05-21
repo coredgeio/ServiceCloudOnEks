@@ -1,5 +1,0 @@
-apiVersion: v2
-appVersion: "0.1"
-description: Common chart for docker registry secrets
-name: repository-cred
-version: 0.1.0
