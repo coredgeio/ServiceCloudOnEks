@@ -1,0 +1,176 @@
+nks-postgres:
+  labels:
+    app: "nks-postgres"
+    group: "db"
+  namespace: keycloak
+
+  image:
+    repository: "chub.cloud.gov.in/library/postgres"
+    tag: "12_x64"
+  replicas: "1"
+  httpPort: 5432
+
+  #resources: |
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+
+  svc_name: "nks-postgres"
+  pvSize: 50Gi
+
+  tracing-enabled: false
+
+  env: |
+    - name: POSTGRES_USER
+      value: api_user
+    - name: POSTGRES_PASSWORD
+      value: password
+    - name: POSTGRES_DB
+      value: apidb
+    - name: PGDATA
+      value: /var/lib/postgresql/data/pgdata      
+
+  volumeMounts: |
+    - mountPath: /var/lib/postgresql/data
+      name: nks-data
+
+  volumes: |
+    - name: nks-data
+      persistentVolumeClaim:
+        claimName: nks-data
+
+
+nks-api:
+  labels:
+    app: "nks-api"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/kubernetes-middleware"
+    pullPolicy: IfNotPresent
+    tag: "v06032023161315"
+  replicas: "1"
+  httpPort: 5000
+  resources: |
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  tracing-enabled: false
+
+
+  env: |
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_HOST
+      value: "nks-postgres"
+    - name: ADMIN_PORTAL_AUTHORIZATION_TOKEN
+      value: Bearer EMO2JgLtmimbIVm6nSiCkNt7nOlCOs    
+    - name: POSTGRES_USER
+      value: api_user
+    - name: POSTGRES_PASSWORD
+      value: password
+    - name: POSTGRES_DB
+      value: apidb
+    - name: PGDATA
+      value: /var/lib/postgresql/data/pgdata   
+    - name: IS_NKS_INSTALLED
+      value: 'True'
+    - name: NKS_ADMIN_USER
+      value: kgadmin
+    - name: NKS_OIDC_CLIENT_ID
+      value: nks
+    - name: NKS_OIDC_CLIENT_SECRET
+      value: SpgMAWfSshILlATiOcQRSbdJ2aPc2MA7
+    - name: NKS_PASSWORD
+      value: Kubeguardian1
+    - name: NKS_PORTAL_BASE_URL
+      value: https://nks.preprodcloud.nic.in
+    - name: SERVICE_EXTERNAL_URL
+      value: https://serviceapi.preprodcloud.nic.in      
+
+  hostAliases:
+      - ip: 10.194.168.31
+        hostnames:
+          - uat-devops.cloud.gov.in
+      - ip: 10.194.49.26
+        hostnames:
+          - chub.cloud.gov.in
+      - ip: 10.194.49.25
+        hostnames:
+          - git.cloud.gov.in
+      - ip: 10.194.98.211
+        hostnames:
+          - nks.preprodcloud.nic.in    
+
+
+nks-celery:
+  labels:
+    app: "nks-celery"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud-dev/kubernetes-middleware"
+    pullPolicy: IfNotPresent
+    tag: "v06032023161315"
+  replicas: "1"
+  httpPort: 5000
+  resources: |
+    limits:
+      cpu: '1'
+      memory: 2Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi  
+  tracing-enabled: false
+
+  command:
+    - /bin/sh
+    - '-cx'
+    - >-
+      /usr/bin/celery -A app worker --concurrency=2 --loglevel=INFO >>
+      /opt/www/celery.log 2>&1   
+
+  env: |
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_HOST
+      value: "nks-postgres"
+    - name: ADMIN_PORTAL_AUTHORIZATION_TOKEN
+      value: Bearer EMO2JgLtmimbIVm6nSiCkNt7nOlCOs    
+    - name: POSTGRES_USER
+      value: api_user
+    - name: POSTGRES_PASSWORD
+      value: password
+    - name: POSTGRES_DB
+      value: apidb
+    - name: PGDATA
+      value: /var/lib/postgresql/data/pgdata   
+    - name: IS_NKS_INSTALLED
+      value: 'True'
+    - name: NKS_ADMIN_USER
+      value: kgadmin
+    - name: NKS_OIDC_CLIENT_ID
+      value: nks
+    - name: NKS_OIDC_CLIENT_SECRET
+      value: SpgMAWfSshILlATiOcQRSbdJ2aPc2MA7
+    - name: NKS_PASSWORD
+      value: Kubeguardian1
+    - name: NKS_PORTAL_BASE_URL
+      value: https://nks.preprodcloud.nic.in
+    - name: SERVICE_EXTERNAL_URL
+      value: https://serviceapi.preprodcloud.nic.in      
+
+
+  hostAliases:
+      - ip: 10.194.168.31
+        hostnames:
+          - uat-devops.cloud.gov.in
+      - ip: 10.194.49.26
+        hostnames:
+          - chub.cloud.gov.in
+      - ip: 10.194.49.25
+        hostnames:
+          - git.cloud.gov.in
+      - ip: 10.194.98.211
+        hostnames:
+          - nks.preprodcloud.nic.in    

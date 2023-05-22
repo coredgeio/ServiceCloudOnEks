@@ -1,0 +1,26 @@
+{{- define "common.ingress_old_k8s" -}}
+{{- if .Values.ingress.enabled -}}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "common.name" . }}
+  labels:
+{{- include "common.labels" . | nindent 4 }}      
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hostName }}
+      secretName: cloud.gov.in
+  rules:
+    - host: {{ .Values.ingress.hostName }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              serviceName: {{ template "common.name" . }}
+              servicePort: {{ .Values.httpPort }}
+{{- end -}} 
+{{- end -}} 

@@ -1,0 +1,35 @@
+apiVersion: v2
+name: service-cloud-app
+version: 0.1.0
+description: A Helm chart for deploying service cloud charts
+dependencies:
+  - name: postgres
+    version: "*"
+    repository: file://charts/postgres    
+  - name: admin-api
+    version: "*"
+    repository: file://charts/admin-api      
+  - name: admin-celery
+    version: "*"
+    repository: file://charts/admin-celery  
+  - name: api
+    version: "*"
+    repository: file://charts/api   
+  - name: celery
+    version: "*"
+    repository: file://charts/celery
+  - name: apirevproxy
+    version: "*"
+    repository: file://charts/apirevproxy    
+  - name: console
+    version: "*"
+    repository: file://charts/console      
+  - name: socketio
+    version: "*"
+    repository: file://charts/socketio   
+  - name: pgadmin
+    version: "*"
+    repository: file://charts/pgadmin
+  - name: smtp
+    version: "*"
+    repository: file://charts/smtp    

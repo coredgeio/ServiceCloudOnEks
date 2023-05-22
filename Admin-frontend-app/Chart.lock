@@ -1,0 +1,9 @@
+dependencies:
+- name: admin
+  repository: file://../backbone-services/admin
+  version: 0.1.0
+- name: admin-new-ui
+  repository: file://../backbone-services/admin-new-ui
+  version: 0.1.0
+digest: sha256:2b2f2e0a81d1ad4dbaca185529f6fac869acdcc5404a775f90ea9f730f8f76ba
+generated: "2023-04-18T09:39:37.034521+05:30"

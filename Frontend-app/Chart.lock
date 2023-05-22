@@ -1,0 +1,9 @@
+dependencies:
+- name: frontend
+  repository: file://charts/frontend
+  version: 0.1.0
+- name: react-frontend
+  repository: file://charts/react-frontend
+  version: 0.1.0
+digest: sha256:28638fa6bf0cbc9e9555c377c040700906811a8d0c64fef8fb5e55d7ec88cfd2
+generated: "2023-05-15T16:08:50.51594+05:30"

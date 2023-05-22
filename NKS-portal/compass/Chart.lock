@@ -1,0 +1,15 @@
+dependencies:
+- name: helper
+  repository: file://../common/helper
+  version: 0.1.0
+- name: repository-cred
+  repository: file://../common/repository-cred
+  version: 0.1.0
+- name: keycloak
+  repository: file://components/keycloak
+  version: 0.1.0
+- name: frontend
+  repository: file://components/frontend
+  version: 0.1.0
+digest: sha256:359f76c911036dd265992fb4c5e18549ee6a2d2bc455f178c672be101b116fbc
+generated: "2022-12-14T05:03:06.587982385Z"

@@ -1,0 +1,87 @@
+global:
+  certname: labcloud-certs
+  #Example labcloud-certs, preprod-certs
+
+replicas: 3
+image:
+  repository: chub.cloud.gov.in/service-cloud-dev/keycloak
+  tag: 17.0.1-custom-1.5
+pgchecker:
+  image:
+    repository: chub.cloud.gov.in/library/busybox
+    tag: 1.31
+
+postgresql-ha:
+  postgresql:
+    image:
+      registry: chub.cloud.gov.in
+      repository: library/postgresql-repmgr
+      tag: 14.3.0-debian-10-r11
+
+  pgpool:
+    image:
+      registry: chub.cloud.gov.in
+      repository: library/pgpool
+      tag: 4.3.2-debian-10-r5
+
+ingress:
+  # If `true`, an Ingress is created
+  enabled: true
+  # The name of the Ingress Class associated with this ingress
+  ingressClassName: "nginx"
+  # The Service port targeted by the Ingress
+  servicePort: http
+  # Ingress annotations
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/affinity-mode: persistent
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      location /auth/admin {
+        deny all;
+        return 403;
+      }        
+    ## Resolve HTTP 502 error using ingress-nginx:
+    ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
+    # nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+
+  # Additional Ingress labels
+  labels: {}
+   # List of rules for the Ingress
+  rules:
+    -
+      # Ingress host
+      host: 'auth-cd.labcloud.nic.in'
+      # Paths for the host
+      paths:
+        - path: /
+          pathType: Prefix
+  # TLS configuration
+  tls:
+    - hosts:
+        - 'auth-cd.labcloud.nic.in'
+      secretName: "labcloud-certs"
+
+  # ingress for console only (/auth/admin)
+  console:
+    # If `true`, an Ingress is created for console path only
+    enabled: true
+    # The name of Ingress Class associated with the console ingress only
+    ingressClassName: ""
+    # Ingress annotations for console ingress only
+    # Useful to set nginx.ingress.kubernetes.io/whitelist-source-range particularly
+    annotations: {}
+    rules:
+      -
+        # Ingress host
+        host: 'authadmin-cd.labcloud.nic.in'
+        # Paths for the host
+        paths:
+          - path: /auth
+            pathType: Prefix
+    # Console TLS configuration
+    tls:
+     - hosts:
+         - authadmin-cd.labcloud.nic.in
+       secretName: "labcloud-certs"
+
+## Network policy configuration      

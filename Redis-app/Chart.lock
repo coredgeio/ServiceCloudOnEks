@@ -1,0 +1,9 @@
+dependencies:
+- name: redis
+  repository: file://charts/redis
+  version: 0.1.0
+- name: redisadmin
+  repository: file://charts/redisadmin
+  version: 0.1.0
+digest: sha256:8449fa38022fe94f520de457b30c65e1757013ed194ce0aed5b8930a5f8d7b87
+generated: "2023-05-15T10:33:41.669046+05:30"

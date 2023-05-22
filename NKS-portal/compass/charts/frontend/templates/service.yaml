@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nks-frontend
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+{{- if (eq .Values.global.domain .Values.global.controllerDNSName) }}
+  - name: bootstrap
+    port: 8030
+    targetPort: 8030
+    nodePort: {{ .Values.global.controllerBootstrapNodePort }}
+  - name: controller
+    port: 8040
+    targetPort: 8040
+    nodePort: {{ .Values.global.controllergRPCNodePort }}
+{{- end }}
+{{- if not .Values.global.kubectl.tokenAccess.enabled  }}
+  - name: kubectl
+    port: 6443
+    targetPort: 6443
+    nodePort: {{ .Values.global.controllerKubeNodePort }}
+{{- end }}
+  - name: http
+{{ if not .Values.global.ingressEnabled  }}
+    port: 80
+    targetPort: 80
+    nodePort: 31200
+  type: NodePort
+{{ else }}
+    port: 443
+    targetPort: 443
+    nodePort: {{ .Values.global.ingressNodePort  }}
+  type: LoadBalancer
+{{ end }}
+  selector:
+    io.kompose.service: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-ui
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    kg-app: observability-ui
+  type: ClusterIP

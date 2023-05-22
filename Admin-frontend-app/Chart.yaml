@@ -1,0 +1,11 @@
+apiVersion: v2
+name: admin-frontend-app
+version: 0.1.0
+description: A Helm chart for deploying admin charts
+dependencies:
+  - name: admin
+    version: "*"
+    repository: file://charts/admin   
+  - name: admin-new-ui
+    version: "*"
+    repository: file://charts/admin-new-ui 

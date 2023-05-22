@@ -1,0 +1,12 @@
+dependencies:
+- name: nks-postgres
+  repository: file://../backbone-services/nks-postgres
+  version: 0.1.0
+- name: nks-api
+  repository: file://../backbone-services/nks-api
+  version: 0.1.0
+- name: nks-celery
+  repository: file://../backbone-services/nks-celery
+  version: 0.1.0
+digest: sha256:93c564060199099da48ba49c5dc1d4fbee2bac1179808e803ab856aa50884cef
+generated: "2023-04-18T08:50:38.136776+05:30"

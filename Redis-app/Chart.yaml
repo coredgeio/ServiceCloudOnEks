@@ -1,0 +1,11 @@
+apiVersion: v2
+name: redis-chart
+version: 0.1.0
+description: A Helm chart for deploying redis charts
+dependencies:
+  - name: redis
+    version: "*"
+    repository: file://charts/redis
+  - name: redisadmin
+    version: "*"
+    repository: file://charts/redisadmin

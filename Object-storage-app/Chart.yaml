@@ -1,0 +1,14 @@
+apiVersion: v2
+name: object-storage-app
+version: 0.1.0
+description: A Helm chart for deploying object storage charts
+dependencies:  
+  - name: postgres-osaas
+    version: "*"
+    repository: file://charts/postgres-osaas
+  - name: osaas-api
+    version: "*"
+    repository: file://charts/osaas-api  
+  - name: osaas-celery
+    version: "*"
+    repository: file://charts/osaas-celery

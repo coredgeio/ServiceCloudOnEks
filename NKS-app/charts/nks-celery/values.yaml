@@ -1,0 +1,37 @@
+# Default values for service-cloud.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Common Labels
+labels:
+  app: "nks-celery"
+
+# Container Configs
+image:
+  repository: "chub.cloud.gov.in/service-cloud-dev/kubernetes-middleware"
+  pullPolicy: IfNotPresent
+  tag: "v06032023161315"
+replicas: "1"
+httpPort: 5000
+resources: |
+  limits:
+    cpu: '1'
+    memory: 2Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi  
+tracing-enabled: false
+
+
+command:
+  - /bin/sh
+  - '-cx'
+  - >-
+    /usr/bin/celery -A app worker --concurrency=2 --loglevel=INFO >>
+    /opt/www/celery.log 2>&1   
+
+env: |
+  - name: DB_PORT
+    value: "5432"
+  - name: DB_HOST
+    value: "nks-postgres"

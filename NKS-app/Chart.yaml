@@ -1,0 +1,14 @@
+apiVersion: v2
+name: nks-app
+version: 0.1.0
+description: A Helm chart for deploying nks charts
+dependencies:
+  - name: nks-postgres
+    version: "*"
+    repository: file://charts/nks-postgres   
+  - name: nks-api
+    version: "*"
+    repository: file://charts/nks-api     
+  - name: nks-celery
+    version: "*"
+    repository: file://charts/nks-celery   

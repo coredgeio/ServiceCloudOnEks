@@ -1,0 +1,240 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    gateway:
+      port: 8060
+    api:
+      externalIP: {{ .Values.global.externalIP }}
+      {{- if .Values.global.ingressEnabled  }}
+      domainName: {{ .Values.global.domain }}
+      {{- end }}
+      port: 8090
+      ingressPort: 8070
+      centralIngressPort: 8071
+      {{- if .Values.global.ingressEnabled  }}
+      kubectlPort: 6443
+      kubectlTokenAccess: true
+      allowCORS: false
+      {{- else }}
+      kubectlPort: 31443
+      allowCORS: true
+      {{- end }}
+      auth:
+        {{- if .Values.controller.auth.enabled }}
+        enabled: true
+        {{- end }}
+        {{- if .Values.global.ingressEnabled  }}
+        provider: https://{{ .Values.global.domain }}
+        {{- else }}
+        provider: http://{{ .Values.controller.externalIP }}:31200
+        {{- end }}
+        realm: {{ .Values.global.realm }}
+        clientId: controller
+      agent:
+        image: "{{ .Values.controller.agent.image }}"
+        imageRepo: "{{ .Values.controller.agent.imageRepo }}"
+        hostNetwork: {{ .Values.controller.agent.hostNetwork }}
+    {{- if .Values.cluster.accessLogs.enabled }}
+    cluster:
+      accessLogs:
+        enabled: true
+        limits:
+          maxSize: 1000000 # max memory allowed to be used in bytes for cluster access logs per cluster
+          maxEntries: 5000 # max number of entries allowed to be used for cluster access logs per cluster
+    {{- end }}
+    controller:
+      externalIP: "{{ .Values.controller.externalIP }}"
+      domainName: "{{ .Values.global.controllerDNSName }}"
+      port: 8040
+      bootstrapPort: 8030
+      internalGatewayPort: 8090
+      mTLSDisabled: {{ .Values.global.controller.mtls.disabled }}
+    mongodb:
+      host: compass-configdb
+      port: 27017
+    metricsdb:
+      host: compass-metricsdb
+      port: 27017
+    certificates:
+      rootCA:
+        cert: "/opt/certs/rootCA.pem"
+        key: "/opt/certs/rootCA.key"
+    defaultRepos:
+      enabled: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: controller-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    controller:
+      port: 8040
+      internalGatewayPort: 8090
+      ingressPort: 6443
+      bootstrapPort: 8030
+      externalIP: "{{ .Values.controller.externalIP }}"
+      {{- if .Values.controller.proxyIPs }}
+      proxyIPs:
+      {{- range .Values.controller.proxyIPs }}
+      - {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      domainName: "{{ .Values.global.controllerDNSName }}"
+      mTLSDisabled: {{ .Values.global.controller.mtls.disabled }}
+    mongodb:
+      host: compass-configdb
+      port: 27017
+    metricsdb:
+      host: compass-metricsdb
+      port: 27017
+    certificates:
+      client:
+        certValidity: 5
+      rootCA:
+        cert: "/opt/certs/rootCA.pem"
+        key: "/opt/certs/rootCA.key"
+      ingress:
+        cert: "/opt/certs/ingress/cert.pem"
+        key: "/opt/certs/ingress/key.pem"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: terminal-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    term:
+      port: 8000
+      auth:
+        enabled: true
+        {{- if .Values.global.ingressEnabled  }}
+        provider: https://{{ .Values.global.domain }}
+        {{- else }}
+        provider: http://{{ .Values.controller.externalIP }}:31200
+        {{- end }}
+        realm: {{ .Values.global.realm }}
+        clientId: controller
+    mongodb:
+      host: compass-configdb
+      port: 27017
+    certificates:
+      ingress:
+        cert: "/opt/certs/ingress/cert.pem"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kg-cluster-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    mongodb:
+      host: compass-configdb
+      port: 27017
+    metricsdb:
+      host: compass-metricsdb
+      port: 27017
+    certificates:
+      ingress:
+        cert: "/opt/certs/ingress/cert.pem"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orchestrator-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    mongodb:
+      host: compass-configdb
+      port: 27017
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metric-server-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    mongodb:
+      host: compass-configdb
+      port: 27017
+    metricsdb:
+      host: compass-metricsdb
+      port: 27017
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-scanner-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    mongodb:
+      host: compass-configdb
+      port: 27017
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trivy-config
+  namespace: {{ .Release.Namespace }}
+data:
+  trivy.yml: |
+    trivy:
+      {{- if .Values.trivy.enabled }}
+      enabled: false
+      {{- end }}
+      defaultServer:
+        hostName: {{ .Values.trivy.defaultServer.hostName }}
+        port: {{ .Values.trivy.defaultServer.port }}
+        scheme: {{ .Values.trivy.defaultServer.scheme }}
+        allowInsecure: {{ .Values.trivy.defaultServer.allowInsecure }}
+        customHeaders:
+        {{- range .Values.trivy.defaultServer.customHeaders }}
+        - name: {{ .name }}
+          values:
+          {{- range .values }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yml: |
+    http:
+      locations:
+      - prefix: /api/cluster-manager
+        endpoint: http://compass-cluster-manager:8080
+        rewritePrefix: /
+      - prefix: /api/cluster-manager/v1/download
+        endpoint: http://compass-cluster-manager:8080
+        rewritePrefix: /v1/download
+        accessType: public
+      - prefix: /v1/download
+        consumeLocally: true
+        accessType: public
+      - prefix: /v1
+        consumeLocally: true
+      - prefix: /
+        consumeLocally: true
+        accessType: public
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init
+  namespace: {{ .Release.Namespace }}
+data:
+{{ (.Files.Glob "files/start-mongodb.sh").AsConfig | indent 2 }}

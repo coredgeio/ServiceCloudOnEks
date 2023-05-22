@@ -1,0 +1,39 @@
+redis:
+  labels:
+    app: "redis"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/library/redis"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  replicas: "1"
+  httpPort: 6379
+
+  env: |
+    - name: ALLOW_EMPTY_PASSWORD
+      value: "yes"
+
+
+
+redisadmin:
+  labels:
+    app: "redisadmin"
+
+  # Container Configs
+  image:
+    repository: "chub.cloud.gov.in/service-cloud/php-redis-admin"
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  replicas: "1"
+  httpPort: 80
+
+  env: |
+    - name: PHPREDMIN_DATABASE_REDIS_0_HOST
+      value: redis    
+
+  ingress:
+    enabled: true
+    hostName: redis.preprodcloud.nic.in
+    context: redis
+    secretName: preprod-certs

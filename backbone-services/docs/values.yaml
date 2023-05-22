@@ -1,0 +1,15 @@
+# Default values for egov-finance.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Common Labels
+labels:
+  app: "docs"
+
+# Container Configs
+image:
+  repository: "chub.cloud.gov.in/service-cloud/docs"
+  pullPolicy: IfNotPresent
+  tag: "latest"
+replicas: "1"
+httpPort: 80
