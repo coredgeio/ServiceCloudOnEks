@@ -171,10 +171,10 @@ admin-api:
 
 
   hostAliases:
-      - ip: "10.2.3.242"
+      - ip: "13.233.202.158"
         hostnames:
         - "auth.coredge.io" 
-      - ip: "10.2.3.242"
+      - ip: "13.233.202.158"
         hostnames:
           - vault.coredge.io       
 
@@ -297,11 +297,11 @@ admin-celery:
         optional: false
         
   hostAliases:
-      - ip: "10.2.3.242"
+      - ip: "13.233.202.158"
         hostnames:
         - "auth.coredge.io" 
 
-      - ip: "10.2.3.242"
+      - ip: "13.233.202.158"
         hostnames:
           - vault.coredge.io            
 
@@ -389,13 +389,13 @@ api:
 
 
   hostAliases:
-      - ip: "10.2.3.242"
+      - ip: "13.233.202.158"
         hostnames:
         - "auth.coredge.io"
       - ip: 10.247.252.97
         hostnames:
           - cloud.gov.in
-      - ip: "10.2.3.242"
+      - ip: "13.233.202.158"
         hostnames:
           - vault.coredge.io             
 
