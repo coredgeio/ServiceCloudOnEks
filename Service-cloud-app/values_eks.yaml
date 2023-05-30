@@ -5,7 +5,7 @@ postgres:
 
   image:
     repository: "coredgeio/postgres"
-    tag: "middle_raw"
+    tag: "middle_19-04-23"
   replicas: "1"
   httpPort: 5432
 
