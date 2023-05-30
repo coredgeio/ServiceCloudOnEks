@@ -150,7 +150,9 @@ admin-api:
     - name: VAULT_TOKEN
       value: 
     - name: VERIFY_VAULT_SSL
-      value: 'false'         
+      value: 'false'
+    - name: OIDC_BASE_URL
+      value: https://auth.coredge.io
 
   envFrom: |
     - secretRef:
@@ -287,6 +289,9 @@ admin-celery:
       value: 
     - name: VERIFY_VAULT_SSL
       value: 'false'   
+    - name: OIDC_BASE_URL
+      value: https://auth.coredge.io
+    
 
   envFrom: |
     - secretRef:
