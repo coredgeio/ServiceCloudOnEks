@@ -62,7 +62,7 @@ admin-api:
   image:
     repository: "coredgeio/admin-middleware"
     pullPolicy: IfNotPresent
-    tag: "v010520231352"
+    tag: "v29052023185121"
   replicas: "1"
   httpPort: 5000
   #resources: |
